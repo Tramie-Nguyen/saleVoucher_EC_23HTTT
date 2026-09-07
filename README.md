@@ -20,7 +20,7 @@ The system supports three main roles:
 - **Partners:** Manage partner information and vouchers, and verify purchased vouchers using QR codes.
 - **Administrators:** Manage users, partners, vouchers, reviews, advertisements, and other system activities.
 
-The project follows a **Frontend – Backend – Database** architecture and includes a Python-based data crawling component for collecting and processing external data.
+The project follows a **Frontend – Backend – Database** architecture (monorepo, deployed as a single service) and includes a Python-based data crawling component for collecting and processing external data.
 
 ---
 
@@ -38,58 +38,67 @@ The project follows a **Frontend – Backend – Database** architecture and inc
 - Partner and location information
 - Shopping cart management
 - Order creation
-- Online payment
+- Online payment (VNPay / PayPal)
 - Order history
-- Purchased voucher management
+- Purchased voucher management (with QR code)
 - Reviews, feedback, and complaints
+- Multi-language interface (Vietnamese / English)
 
 ## 🏪 Partner
 
 - Login and logout
 - Partner profile management
+- Branch/staff management
 - Voucher management
 - Create and update vouchers
 - Manage voucher status
 - Manage voucher-related information
 - Scan QR codes to verify purchased vouchers
+- Partner-level reports
 
 ## 👨‍💼 Administrator
 
 - Login and logout
 - User account management
-- Partner management
-- Voucher management
-- Voucher approval and moderation
+- Partner management (approval)
+- Voucher management (approval and moderation)
+- Order management
 - Review management
 - Complaint and feedback management
-- Advertisement content management
-- System data management
+- Advertisement / content management
+- Dashboard and analytics (charts)
+- Audit log / system activity log
 
 ---
 
 # 💳 Online Payment
 
-The system supports an online payment workflow:
+The system integrates **two real payment gateways**, configured through environment variables:
 
-```text
+- **VNPay** — domestic payment gateway (sandbox by default)
+- **PayPal** — international payment gateway
+
+General payment workflow:
+
+```
 Customer
    ↓
 Shopping Cart
    ↓
 Create Order
    ↓
-Payment
+Choose Payment Method (VNPay / PayPal)
    ↓
-Payment Gateway
+Redirect to Payment Gateway
    ↓
-Callback / IPN
+Callback / Return URL / IPN
    ↓
 Backend verifies transaction
    ↓
-Update Order Status
+Update Order Status → Issue Voucher Code / QR
 ```
 
-Payment-related credentials and secrets are stored in environment variables and are not exposed to the frontend.
+Payment-related credentials and secrets are stored in environment variables (`VNP_*`, `PAYPAL_*`) and are never exposed to the frontend.
 
 ---
 
@@ -97,14 +106,14 @@ Payment-related credentials and secrets are stored in environment variables and 
 
 The system implements:
 
-- Authentication and authorization
-- JWT-based authentication
-- Password hashing
-- Role-based access control
-- Middleware-based access control
+- JWT-based authentication (Access Token + Refresh Token)
+- Password hashing (bcryptjs)
+- Role-based access control (Customer / Partner / Admin)
+- Middleware-based authentication & authorization
 - Protected API endpoints
 - OTP-based account verification
-- Environment variables for sensitive credentials
+- CORS configuration
+- Environment variables for all sensitive credentials (never committed to Git)
 
 ---
 
@@ -112,7 +121,7 @@ The system implements:
 
 Customer account verification uses **SendGrid** to send OTP codes via email.
 
-```text
+```
 Customer
    ↓
 Request OTP
@@ -134,13 +143,13 @@ Account verification completed
 
 The project includes a Python-based data crawling component located in:
 
-```text
+```
 crawl data/
 ```
 
 It is used to collect, filter, and process external data before importing it into the system.
 
-```text
+```
 crawl data/
 ├── chinhanh.py
 ├── data.py
@@ -173,79 +182,80 @@ The crawling process includes:
 
 # 🏗️ System Architecture
 
-The project follows a separated frontend, backend, and database architecture:
-
-```text
-                         ┌───────────────┐
-                         │   Customers   │
-                         └───────┬───────┘
-                                 │
-                                 ▼
-                    ┌──────────────────────┐
-                    │      Frontend        │
-                    │   React + Vite       │
-                    │    Tailwind CSS      │
-                    └──────────┬───────────┘
-                               │
-                            REST API
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │       Backend        │
-                    │   Node.js + Express  │
-                    └──────────┬───────────┘
-                               │
-              ┌────────────────┼────────────────┐
-              │                │                │
-              ▼                ▼                ▼
-       ┌────────────┐   ┌─────────────┐   ┌────────────┐
-       │  Database  │   │   Payment   │   │  External  │
-       │ PostgreSQL │   │   Gateway   │   │  Services  │
-       └────────────┘   └─────────────┘   └────────────┘
-                                                │
-                                                ▼
-                                        ┌──────────────┐
-                                        │   SendGrid   │
-                                        └──────────────┘
-
-                         ▲
-                         │
-                  ┌──────┴───────┐
-                  │ Data Crawling│
-                  │    Python    │
-                  └──────────────┘
 ```
+                  ┌───────────────┐
+                  │   Customers   │
+                  └───────┬───────┘
+                          │
+                          ▼
+             ┌──────────────────────┐
+             │      Frontend        │
+             │   React + Vite       │
+             │    Tailwind CSS      │
+             └──────────┬───────────┘
+                        │
+                     REST API (/api)
+                        │
+                        ▼
+             ┌──────────────────────┐
+             │       Backend        │
+             │   Node.js + Express  │
+             └──────────┬───────────┘
+                        │
+       ┌────────────────┼────────────────────┐
+       │                │                     │
+       ▼                ▼                     ▼
+┌────────────┐   ┌─────────────┐      ┌────────────┐
+│  Database  │   │   Payment   │      │  External  │
+│ PostgreSQL │   │  VNPay /    │      │  Services  │
+│ (Supabase) │   │  PayPal     │      │            │
+└────────────┘   └─────────────┘      └─────┬──────┘
+                                             │
+                                             ▼
+                                     ┌──────────────┐
+                                     │   SendGrid   │
+                                     └──────────────┘
+
+                  ▲
+                  │
+           ┌──────┴───────┐
+           │ Data Crawling│
+           │    Python    │
+           └──────────────┘
+```
+
+> **Note:** In production, the backend serves the built frontend (`frontend/dist`) directly as static files, so the whole app runs as a **single deployable service** (this is how the Render demo is hosted).
 
 ---
 
 # 🛠️ Technologies
 
-| Category              | Technologies                                            |
-| --------------------- | ------------------------------------------------------- |
-| **Frontend**          | React.js, Vite, Tailwind CSS, JavaScript, React Router  |
-| **Backend**           | Node.js, Express.js, RESTful API, JWT, bcryptjs, dotenv |
-| **Database**          | PostgreSQL, Supabase, SQL                               |
-| **Authentication**    | JWT, bcryptjs, SendGrid                                 |
-| **Payment**           | Online Payment Gateway                                  |
-| **QR Code**           | QR Code generation and scanning                         |
-| **Data Crawling**     | Python, Requests, BeautifulSoup                         |
-| **Development Tools** | Git, GitHub, Visual Studio Code, Postman, Figma         |
-| **Deployment**        | Render                                                  |
+| Category              | Technologies                                                                                                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Frontend**          | React 18, Vite, Tailwind CSS, React Router, i18next / react-i18next, Recharts (dashboard charts), Tiptap (rich text editor), Sonner (toast notifications), html5-qrcode (QR scanning) |
+| **Backend**           | Node.js, Express.js, RESTful API, JWT (jsonwebtoken), bcryptjs, dotenv, qrcode (QR generation)                                                                                        |
+| **Database**          | PostgreSQL, Supabase (Supabase JS client), SQL                                                                                                                                        |
+| **Authentication**    | JWT, bcryptjs, SendGrid (OTP email)                                                                                                                                                   |
+| **Payment**           | VNPay, PayPal                                                                                                                                                                         |
+| **QR Code**           | `qrcode` (generation, backend) + `html5-qrcode` (scanning, frontend)                                                                                                                  |
+| **Data Crawling**     | Python, Requests, BeautifulSoup                                                                                                                                                       |
+| **Development Tools** | Git, GitHub, Visual Studio Code, Postman, Figma                                                                                                                                       |
+| **Deployment**        | Render (single service: backend serves built frontend)                                                                                                                                |
 
 ---
 
 # 📁 Project Structure
 
-```text
+```
 saleVoucher_EC_23HTTT/
 │
 ├── backend/
 │   ├── src/
 │   │   ├── app.js
 │   │   ├── server.js
-│   │   ├── config/
-│   │   ├── common/
-│   │   ├── modules/
+│   │   ├── config/            # environment.js, supabase.js, cors.js
+│   │   ├── common/            # constants, errors, middleware, utils, cache
+│   │   ├── modules/           # core-access, customer-commerce, partner-voucher, content-feedback
 │   │   └── routes/
 │   │
 │   ├── package.json
@@ -255,12 +265,13 @@ saleVoucher_EC_23HTTT/
 │   ├── src/
 │   │   ├── main.jsx
 │   │   ├── App.jsx
-│   │   ├── app/
-│   │   ├── layouts/
+│   │   ├── app/                # auth-context, query-client, router
+│   │   ├── layouts/             # Admin / Customer / Partner / Public layouts
 │   │   ├── routes/
-│   │   ├── shared/
-│   │   └── features/
+│   │   ├── shared/               # api clients, components, hooks, i18n, store, utils
+│   │   └── features/            # core-access, customer-commerce, partner-voucher, content-feedback
 │   │
+│   ├── vite.config.js           # dev proxy: /api → http://localhost:3001
 │   ├── package.json
 │   └── package-lock.json
 │
@@ -276,11 +287,14 @@ saleVoucher_EC_23HTTT/
 │   └── requirements.txt
 │
 ├── database/
+│   ├── create_tables.sql        # PostgreSQL/Supabase schema
+│   ├── seeds.sql                 # demo seed data
+│   └── data.sql                  # additional sample data
 │
 ├── docs/
 │
 ├── .gitignore
-├── package.json
+├── package.json                  # root scripts: build (frontend+backend), start
 └── README.md
 ```
 
@@ -290,99 +304,133 @@ saleVoucher_EC_23HTTT/
 
 ## 1. Clone the Repository
 
-```bash
+```
 git clone https://github.com/Tramie-Nguyen/saleVoucher_EC_23HTTT.git
 cd saleVoucher_EC_23HTTT
 ```
 
-## 2. Backend
+## 2. Database (PostgreSQL / Supabase)
+
+Create a PostgreSQL database (a free [Supabase](https://supabase.com) project works out of the box) and run the SQL scripts in the `database/` folder, in this order, using the Supabase SQL Editor or `psql`:
+
+```
+database/create_tables.sql
+database/seeds.sql
+database/data.sql
+```
+
+Keep note of your project's **Supabase URL** and **Service Role Key** — they are required in the next step.
+
+## 3. Backend
 
 Navigate to the backend directory:
 
-```bash
+```
 cd backend
 ```
 
 Install dependencies:
 
-```bash
+```
 npm install
 ```
 
-Create:
+Create a `backend/.env` file with at least the following variables:
 
-```text
-backend/.env
+```env
+# Server
+PORT=3001
+NODE_ENV=development
+
+# Database (Supabase)
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# JWT
+JWT_SECRET=your_jwt_secret
+JWT_REFRESH_SECRET=your_jwt_refresh_secret
+ACCESS_TOKEN_EXPIRY=1440m
+REFRESH_TOKEN_EXPIRY=7d
+
+# SendGrid (OTP email)
+SENDGRID_API_KEY=your_sendgrid_api_key
+SENDGRID_FROM=your_verified_sender_email
+
+# VNPay
+VNP_TMN_CODE=your_vnpay_tmn_code
+VNP_HASH_SECRET=your_vnpay_hash_secret
+VNP_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+VNP_PAYMENT_RETURN_URL=http://localhost:5173/payment/vnpay-return
+
+# PayPal
+PAYPAL_CLIENT_ID=your_paypal_client_id
+PAYPAL_CLIENT_SECRET=your_paypal_client_secret
+PAYPAL_API_BASE=https://api-m.sandbox.paypal.com
+PAYPAL_RETURN_URL=http://localhost:5173/payment/paypal-return
+PAYPAL_CANCEL_URL=http://localhost:5173/payment/paypal-cancel
 ```
-
-Configure the required environment variables for:
-
-- Database connection
-- JWT
-- Frontend URL
-- Payment services
-- SendGrid
-- Other external services
 
 Run the development server:
 
-```bash
+```
 npm run dev
 ```
 
 Or run in production mode:
 
-```bash
+```
 npm start
 ```
 
 Backend:
 
-```text
+```
 http://localhost:3001
 ```
 
 ---
 
-## 3. Frontend
+## 4. Frontend
 
 Open another terminal and navigate to:
 
-```bash
+```
 cd frontend
 ```
 
 Install dependencies:
 
-```bash
+```
 npm install
 ```
 
 Run the development server:
 
-```bash
+```
 npm run dev
 ```
 
 Frontend:
 
-```text
+```
 http://localhost:5173
 ```
 
+> In development, Vite automatically proxies all `/api` requests to `http://localhost:3001` (see `frontend/vite.config.js`), so no extra frontend `.env` is required by default. If you need to point the frontend at a different backend URL, set `VITE_API_BASE_URL` in a `frontend/.env` file.
+
 ---
 
-## 4. Crawl Data
+## 5. Crawl Data (optional)
 
 Navigate to:
 
-```bash
+```
 cd "crawl data"
 ```
 
 Create a Python virtual environment:
 
-```bash
+```
 python -m venv venv
 ```
 
@@ -390,25 +438,25 @@ Activate it on Windows:
 
 **Command Prompt**
 
-```bash
+```
 venv\Scripts\activate
 ```
 
 **PowerShell**
 
-```powershell
+```
 .\venv\Scripts\Activate.ps1
 ```
 
 Install dependencies:
 
-```bash
+```
 pip install -r requirements.txt
 ```
 
 Run the crawler:
 
-```bash
+```
 python start.py
 ```
 
@@ -416,11 +464,22 @@ python start.py
 
 ---
 
+## 6. Run Everything from the Root (alternative)
+
+The root `package.json` provides convenience scripts that mirror the production build/run flow (frontend build is served statically by the backend):
+
+```
+npm run build   # installs & builds frontend, installs backend deps
+npm start       # starts the backend, which serves the built frontend in production
+```
+
+---
+
 # 🔄 Backend Request Flow
 
 The backend follows a layered and modular structure:
 
-```text
+```
 Client Request
       ↓
 Route
@@ -458,7 +517,7 @@ All four team members participated in the overall development process, including
 
 Project documentation is maintained in:
 
-```text
+```
 docs/
 ```
 
@@ -488,11 +547,11 @@ It includes materials such as:
 
 # 🌍 Deployment
 
-The project has been deployed using Render.
+The project is deployed on **Render** as a single web service: the backend (Express) builds and serves the compiled frontend (`frontend/dist`) directly, so only one URL is needed in production.
 
 **Live Website:** https://ec07-snowvoucher.onrender.com
 
-For production deployment, environment variables such as database credentials, JWT secrets, API keys, payment credentials, and service URLs must be configured separately.
+For production deployment, configure all environment variables listed in the [Backend setup](#3-backend) section (database, JWT, SendGrid, VNPay, PayPal) directly on the hosting platform — never commit them to the repository.
 
 ---
 
