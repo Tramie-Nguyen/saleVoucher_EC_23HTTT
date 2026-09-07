@@ -1,159 +1,526 @@
-# saleVoucher_EC_23HTTT
+# 🏷️ SnowVoucher – Online Discount Voucher E-commerce Platform
 
-- “Xây dựng hệ thống thương mại điện tử bán voucher giảm giá trực tuyến”
-- link web: https://ec07-snowvoucher.onrender.com
+> An e-commerce platform for discovering, purchasing, and managing discount vouchers from multiple partners and locations.
 
-## Mục tiêu cấu trúc dự án
+## 🌐 Demo
 
-Dự án đã được reorganize theo hướng module-based để các thành viên mới có thể dễ dàng hiểu:
+- **Live Website:** https://ec07-snowvoucher.onrender.com
+- **GitHub Repository:** https://github.com/Tramie-Nguyen/saleVoucher_EC_23HTTT
+- **Demo Video:** `[Insert demo video link]`
 
-- Backend: chứa API, middleware, module nghiệp vụ, route và cấu hình chung.
-- Frontend: chứa giao diện theo role, layout, router và feature riêng.
-- Database: chứa schema, migration và seed dữ liệu.
-- Docs: chứa tài liệu API, ERD và test-case.
+---
 
-## Cấu trúc thư mục chính
+# 📖 Project Overview
+
+**SnowVoucher** is an online e-commerce platform designed to provide customers with convenient access to discount vouchers from various partners and locations.
+
+The system supports three main roles:
+
+- **Customers:** Search, browse, purchase, and manage discount vouchers.
+- **Partners:** Manage partner information and vouchers, and verify purchased vouchers using QR codes.
+- **Administrators:** Manage users, partners, vouchers, reviews, advertisements, and other system activities.
+
+The project follows a **Frontend – Backend – Database** architecture and includes a Python-based data crawling component for collecting and processing external data.
+
+---
+
+# ✨ Main Features
+
+## 👤 Customer
+
+- Account registration
+- Login and logout
+- OTP-based account verification
+- Profile management
+- Password change
+- Voucher search and filtering
+- Voucher detail viewing
+- Partner and location information
+- Shopping cart management
+- Order creation
+- Online payment
+- Order history
+- Purchased voucher management
+- Reviews, feedback, and complaints
+
+## 🏪 Partner
+
+- Login and logout
+- Partner profile management
+- Voucher management
+- Create and update vouchers
+- Manage voucher status
+- Manage voucher-related information
+- Scan QR codes to verify purchased vouchers
+
+## 👨‍💼 Administrator
+
+- Login and logout
+- User account management
+- Partner management
+- Voucher management
+- Voucher approval and moderation
+- Review management
+- Complaint and feedback management
+- Advertisement content management
+- System data management
+
+---
+
+# 💳 Online Payment
+
+The system supports an online payment workflow:
 
 ```text
-backend/
-  src/
-    app.js                 # khởi tạo Express app
-    server.js              # file chạy thật của backend
-    config/                # cấu hình env, cors, database
-    common/                # middleware, error, constants, utils, database
-    modules/               # module nghiệp vụ theo chức năng
-    routes/                # định nghĩa route
-
-frontend/
-  src/
-    main.jsx               # entry point React
-    App.jsx                # màn hình chính
-    app/                   # router, auth context, query client
-    layouts/               # layout theo vai trò
-    routes/                # route theo role (mẫu)
-    shared/                # component chung, hook, utils
-    features/              # feature riêng theo nghiệp vụ
-
-database/
-  migrations/             # file SQL migrate
-  seeds/                  # dữ liệu mẫu
-  schema.sql              # schema tổng hợp
-
-docs/
-  api/                    # tài liệu API
-  erd/                    # sơ đồ dữ liệu
-  test-cases/             # test case
-  screenshots/            # ảnh giao diện
+Customer
+   ↓
+Shopping Cart
+   ↓
+Create Order
+   ↓
+Payment
+   ↓
+Payment Gateway
+   ↓
+Callback / IPN
+   ↓
+Backend verifies transaction
+   ↓
+Update Order Status
 ```
 
-## Ý nghĩa từng tầng
+Payment-related credentials and secrets are stored in environment variables and are not exposed to the frontend.
 
-- Backend: nơi xử lý request, validate, business logic và tương tác dữ liệu.
-- Frontend: nơi render giao diện và điều hướng theo vai trò người dùng.
-- Database: nơi lưu trữ dữ liệu và quy trình migration.
-- Docs: nơi ghi lại hướng dẫn, API và quy trình test.
+---
 
-## Module hiện có
+# 🔐 Authentication & Security
 
-- core-access: module đăng nhập, phân quyền, quản lý tài khoản.
-- partner-voucher: module quản lý đối tác, voucher và duyệt voucher.
-- customer-commerce: module mua hàng, giỏ hàng, thanh toán và đơn hàng.
-- content-feedback: module thu thập phản hồi, đánh giá nội dung và comment.
+The system implements:
 
-## Cách chạy local
+- Authentication and authorization
+- JWT-based authentication
+- Password hashing
+- Role-based access control
+- Middleware-based access control
+- Protected API endpoints
+- OTP-based account verification
+- Environment variables for sensitive credentials
 
-Frontend:
+---
 
-- cd frontend
-- npm install
-- npm run dev
+# 📧 OTP Verification
+
+Customer account verification uses **SendGrid** to send OTP codes via email.
+
+```text
+Customer
+   ↓
+Request OTP
+   ↓
+Backend generates OTP
+   ↓
+SendGrid sends OTP
+   ↓
+Customer enters OTP
+   ↓
+Backend validates OTP
+   ↓
+Account verification completed
+```
+
+---
+
+# 🕷️ Data Crawling
+
+The project includes a Python-based data crawling component located in:
+
+```text
+crawl data/
+```
+
+It is used to collect, filter, and process external data before importing it into the system.
+
+```text
+crawl data/
+├── chinhanh.py
+├── data.py
+├── filter.py
+├── hsdn.py
+├── nguoidung.py
+├── tai_khoan.py
+├── voucher_cn.py
+├── start.py
+├── text.txt
+└── requirements.txt
+```
+
+The crawling process includes:
+
+- Collecting voucher information
+- Collecting branch/location information
+- Collecting partner-related information
+- Filtering raw data
+- Processing data for system use
+
+### Technologies
+
+- Python
+- Requests
+- BeautifulSoup
+- Python Virtual Environment
+
+---
+
+# 🏗️ System Architecture
+
+The project follows a separated frontend, backend, and database architecture:
+
+```text
+                         ┌───────────────┐
+                         │   Customers   │
+                         └───────┬───────┘
+                                 │
+                                 ▼
+                    ┌──────────────────────┐
+                    │      Frontend        │
+                    │   React + Vite       │
+                    │    Tailwind CSS      │
+                    └──────────┬───────────┘
+                               │
+                            REST API
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │       Backend        │
+                    │   Node.js + Express  │
+                    └──────────┬───────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                │
+              ▼                ▼                ▼
+       ┌────────────┐   ┌─────────────┐   ┌────────────┐
+       │  Database  │   │   Payment   │   │  External  │
+       │ PostgreSQL │   │   Gateway   │   │  Services  │
+       └────────────┘   └─────────────┘   └────────────┘
+                                                │
+                                                ▼
+                                        ┌──────────────┐
+                                        │   SendGrid   │
+                                        └──────────────┘
+
+                         ▲
+                         │
+                  ┌──────┴───────┐
+                  │ Data Crawling│
+                  │    Python    │
+                  └──────────────┘
+```
+
+---
+
+# 🛠️ Technologies
+
+| Category              | Technologies                                            |
+| --------------------- | ------------------------------------------------------- |
+| **Frontend**          | React.js, Vite, Tailwind CSS, JavaScript, React Router  |
+| **Backend**           | Node.js, Express.js, RESTful API, JWT, bcryptjs, dotenv |
+| **Database**          | PostgreSQL, Supabase, SQL                               |
+| **Authentication**    | JWT, bcryptjs, SendGrid                                 |
+| **Payment**           | Online Payment Gateway                                  |
+| **QR Code**           | QR Code generation and scanning                         |
+| **Data Crawling**     | Python, Requests, BeautifulSoup                         |
+| **Development Tools** | Git, GitHub, Visual Studio Code, Postman, Figma         |
+| **Deployment**        | Render                                                  |
+
+---
+
+# 📁 Project Structure
+
+```text
+saleVoucher_EC_23HTTT/
+│
+├── backend/
+│   ├── src/
+│   │   ├── app.js
+│   │   ├── server.js
+│   │   ├── config/
+│   │   ├── common/
+│   │   ├── modules/
+│   │   └── routes/
+│   │
+│   ├── package.json
+│   └── package-lock.json
+│
+├── frontend/
+│   ├── src/
+│   │   ├── main.jsx
+│   │   ├── App.jsx
+│   │   ├── app/
+│   │   ├── layouts/
+│   │   ├── routes/
+│   │   ├── shared/
+│   │   └── features/
+│   │
+│   ├── package.json
+│   └── package-lock.json
+│
+├── crawl data/
+│   ├── start.py
+│   ├── data.py
+│   ├── filter.py
+│   ├── chinhanh.py
+│   ├── hsdn.py
+│   ├── nguoidung.py
+│   ├── tai_khoan.py
+│   ├── voucher_cn.py
+│   └── requirements.txt
+│
+├── database/
+│
+├── docs/
+│
+├── .gitignore
+├── package.json
+└── README.md
+```
+
+---
+
+# ⚙️ Installation & Setup
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/Tramie-Nguyen/saleVoucher_EC_23HTTT.git
+cd saleVoucher_EC_23HTTT
+```
+
+## 2. Backend
+
+Navigate to the backend directory:
+
+```bash
+cd backend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create:
+
+```text
+backend/.env
+```
+
+Configure the required environment variables for:
+
+- Database connection
+- JWT
+- Frontend URL
+- Payment services
+- SendGrid
+- Other external services
+
+Run the development server:
+
+```bash
+npm run dev
+```
+
+Or run in production mode:
+
+```bash
+npm start
+```
 
 Backend:
 
-- cd backend
-- npm install
-- npm run dev
+```text
+http://localhost:3001
+```
 
-## Môi trường chạy
+---
 
-- Frontend React + Vite + Tailwind: http://localhost:5173
-- Backend Express + Nodemon: http://localhost:3001
+## 3. Frontend
 
-## Hướng dẫn luồng code cho người mới
+Open another terminal and navigate to:
 
-Nếu bạn chưa biết bắt đầu từ đâu, hãy nhớ quy tắc đơn giản này:
+```bash
+cd frontend
+```
 
-- Frontend làm gì? -> render giao diện, nhận dữ liệu từ người dùng, gọi API.
-- Backend làm gì? -> nhận request, xử lý logic, đọc/ghi database, trả kết quả về.
-- Database làm gì? -> lưu trữ dữ liệu thật.
+Install dependencies:
 
-### 1. Luồng cơ bản từ đầu đến cuối
+```bash
+npm install
+```
 
-Khi bạn mở một chức năng, hãy đọc theo thứ tự này:
+Run the development server:
 
-1. Frontend: bắt đầu từ route và màn hình
-   - Xem [frontend/src/app/router.jsx](frontend/src/app/router.jsx) để biết đường dẫn nào dẫn tới màn hình đó.
-   - Xem [frontend/src/App.jsx](frontend/src/App.jsx) để biết app chính render gì.
-   - Nếu cần thêm chức năng mới, hãy tìm component trong frontend/src/features/
-2. Frontend gọi API ở đâu
-   - Nếu có gọi backend, thường tìm trong thư mục feature của frontend hoặc file chung như [frontend/src/shared/utils/api-client.js](frontend/src/shared/utils/api-client.js).
-   - Đầu ra của bước này là request đi tới backend.
+```bash
+npm run dev
+```
 
-3. Backend nhận request ở đâu
-   - Request đầu tiên đi vào [backend/src/app.js](backend/src/app.js).
-   - Sau đó được chuyển vào [backend/src/routes/index.js](backend/src/routes/index.js).
-   - Từ đây, hệ thống sẽ đi vào module tương ứng, ví dụ route trong [backend/src/modules/content-feedback/presentation/routes/contentFeedbackRoutes.js](backend/src/modules/content-feedback/presentation/routes/contentFeedbackRoutes.js).
+Frontend:
 
-4. Backend xử lý theo tầng
-   -(presentation) Route: định nghĩa endpoint, ví dụ GET/POST.
-   -(presentation) Controller: nhận request, lấy dữ liệu đầu vào.
-   -(business) Service: xử lý nghiệp vụ.
-   -(data) Repository/Model: đọc hoặc ghi database.
-   -(common/utils) Response: trả dữ liệu về client.
+```text
+http://localhost:5173
+```
 
-5. Database trả dữ liệu ngược lại
-   - Dữ liệu đi ngược từ database -> repository/model -> service -> controller -> route -> frontend.
-   - Nếu có lỗi, hệ thống sẽ đi qua middleware lỗi như [backend/src/common/middleware/error.middleware.js](backend/src/common/middleware/error.middleware.js).
+---
 
-### 2. Cách đọc một chức năng nhanh nhất
+## 4. Crawl Data
 
-Nếu bạn muốn sửa một tính năng, hãy làm theo mẫu này:
+Navigate to:
 
-- Bước A: Tìm màn hình hoặc nút người dùng bấm vào.
-- Bước B: Tìm API được gọi từ frontend.
-- Bước C: Tìm route tương ứng ở backend.
-- Bước D: Đọc controller -> service -> database.
-- Bước E: Kiểm tra response trả về có đúng không.
+```bash
+cd "crawl data"
+```
 
-### 3. “Lấy gì, từ đâu, ra cái gì?”
+Create a Python virtual environment:
 
-- Lấy gì? -> dữ liệu từ request hoặc từ database.
-- Từ đâu? -> từ body, params, query, headers ở request; hoặc từ database qua model/repository.
-- Ra cái gì? -> response trả về frontend, hoặc dữ liệu được lưu vào database.
+```bash
+python -m venv venv
+```
 
-Ví dụ đơn giản:
+Activate it on Windows:
 
-- Người dùng bấm nút “Gửi phản hồi”.
-- Frontend gửi request lên backend.
-- Backend nhận request ở route.
-- Controller lấy dữ liệu từ body.
-- Service xử lý logic.
-- Database lưu dữ liệu.
-- Backend trả response về frontend.
-- Frontend hiện thông báo thành công.
+**Command Prompt**
 
-### 4. Nếu bạn không biết bắt đầu từ file nào
+```bash
+venv\Scripts\activate
+```
 
-Hãy bắt đầu theo thứ tự này:
+**PowerShell**
 
-- Backend: [backend/src/server.js](backend/src/server.js) -> [backend/src/app.js](backend/src/app.js) -> [backend/src/routes/index.js](backend/src/routes/index.js)
-- Frontend: [frontend/src/main.jsx](frontend/src/main.jsx) -> [frontend/src/app/router.jsx](frontend/src/app/router.jsx) -> màn hình tương ứng
+```powershell
+.\venv\Scripts\Activate.ps1
+```
 
-### 5. Ghi chú cho thành viên mới
+Install dependencies:
 
-- Hãy bắt đầu từ file entry point:
-  - Backend: [backend/src/server.js](backend/src/server.js)
-  - Frontend: [frontend/src/main.jsx](frontend/src/main.jsx)
-- Khi thêm tính năng mới, hãy đặt vào module tương ứng trong [backend/src/modules](backend/src/modules) hoặc [frontend/src/features](frontend/src/features).
-- Nếu cần thêm API mới, hãy tạo route trong [backend/src/routes](backend/src/routes) và controller/service tương ứng.
-- Code mẫu trong các file đã được comment ngắn để giải thích mục đích của file.
+```bash
+pip install -r requirements.txt
+```
+
+Run the crawler:
+
+```bash
+python start.py
+```
+
+> The `requirements.txt` file contains the dependencies required by the crawling component. The `venv/` and `__pycache__/` directories should not be committed to Git.
+
+---
+
+# 🔄 Backend Request Flow
+
+The backend follows a layered and modular structure:
+
+```text
+Client Request
+      ↓
+Route
+      ↓
+Middleware
+      ↓
+Controller
+      ↓
+Service
+      ↓
+Repository / Model
+      ↓
+Database
+      ↓
+Response
+```
+
+This structure separates routing, authentication, business logic, data access, and database operations.
+
+---
+
+# 🧪 Testing & Documentation
+
+All four team members participated in the overall development process, including:
+
+- Database design
+- System analysis and design
+- Business requirements and system specifications
+- API and system documentation
+- Functional testing
+- API testing
+- User flow testing
+- Authentication and authorization testing
+- Integration and debugging
+
+Project documentation is maintained in:
+
+```text
+docs/
+```
+
+It includes materials such as:
+
+- System analysis and design
+- Database design
+- API documentation
+- Test cases
+- Screenshots
+- Other project documentation
+
+---
+
+# 👥 Team Contributions
+
+| No. | Member                   | Main Responsibilities                                                                                    |
+| --- | ------------------------ | -------------------------------------------------------------------------------------------------------- |
+| 1   | **Nguyễn Ngọc Mai Xuân** | **Team Leader**; Admin module; Middleware; QR voucher scanning for Partner module                        |
+| 2   | **Nguyễn Thị Trà My**    | Customer module; OTP verification using SendGrid; Data crawling                                          |
+| 3   | **Nguyễn Kim Ngân**      | Partner module; Part of Admin module; English/Vietnamese language support                                |
+| 4   | **Vũ Ngọc Minh Quang**   | Customer feedback, reviews and complaints; Review management; Advertisement content management for Admin |
+
+> All team members also contributed to database design, documentation, business and system specifications, testing, integration, and debugging.
+
+---
+
+# 🌍 Deployment
+
+The project has been deployed using Render.
+
+**Live Website:** https://ec07-snowvoucher.onrender.com
+
+For production deployment, environment variables such as database credentials, JWT secrets, API keys, payment credentials, and service URLs must be configured separately.
+
+---
+
+# 📄 Academic Project
+
+**Project Title:**
+
+> Building an E-commerce System for Selling Discount Vouchers Online
+
+**Course:** E-commerce
+
+**University:** Ho Chi Minh City University of Science – Vietnam National University Ho Chi Minh City
+
+**Team Size:** 4 members
+
+---
+
+## ⭐ Acknowledgement
+
+This project was developed as an academic project to apply knowledge and practical skills in:
+
+- E-commerce
+- System Analysis and Design
+- Web Development
+- RESTful API
+- Database Design
+- Authentication and Authorization
+- Online Payment
+- Web Scraping
+- Software Testing
+- Deployment
