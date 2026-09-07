@@ -1,0 +1,18 @@
+đã import vào supabase:
++ Danh mục
++ Voucher
++ Doanh nghiệp, người dùng
++ Chi nhánh của doanh nghiệp
++ Doanh nghiệp nào áp dụng voucher nào
+
+
+1. start => crawl voucher, doanh nghiệp, chi nhánh, voucher_cn
+3. hsdn => tạo data người dùng, hsdn
+4. nguoidung => map id_nguoi_dung vào hsdn
+5. chi_nhanh => có chi nhánh sau khi đã map mã hồ sơ 
+6. voucher_cn => data voucher áp dụng cho chi nhánh nào
+
+tai_khoan => tạo tài khoản theo dl người dùng + map ma_nguoi_dung
+data => tạo data nguoidung vs mỗi doanh nghiệp có 1 nvien quản lý và mỗi nhân viên bán hàng tương ứng với từng chi nhánh của doanh nghiệp (đã map)
+
+bonus => lấy thêm data theo tên doanh nghiệp
